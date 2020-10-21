@@ -31,3 +31,6 @@ self.addEventListener("fetch", fetchEvent => {
       })
     )
   })
+  self.addEventListener('appinstalled', (event) => {
+    console.log('👍', 'appinstalled', event);
+  });  
