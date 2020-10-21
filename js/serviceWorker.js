@@ -1,3 +1,4 @@
+const OFFLINE_VERSION = 1;
 const staticDevCoffee = "dev-coffee-site-v1"
 const assets = [
   "/",
@@ -18,51 +19,51 @@ const assets = [
 self.addEventListener("install", installEvent => {
  console.log('start');
   installEvent.waitUntil(
-    caches.open(staticDevCoffee).then(cache => {console.log('store assets')
+    caches.open(staticDevCoffee).then(cache => {
       cache.addAll(assets)
     })
   )
 })
 
-self.addEventListener("fetch", fetchEvent => {
-    fetchEvent.respondWith(
-      caches.match(fetchEvent.request).then(res => {console.log(res);
-        return res || fetch(fetchEvent.request)
-      })
-    )
-  })
+// self.addEventListener("fetch", fetchEvent => {
+//     fetchEvent.respondWith(
+//       caches.match(fetchEvent.request).then(res => {
+//         return res || fetch(fetchEvent.request)
+//       })
+//     )
+//   })
 
-// self.addEventListener('fetch', event => {
-//   const {request} = event;
-//   const url = new URL(request.url);
-//   if(url.origin === location.origin) {
-//       event.respondWith(cacheData(request));
-//   } else {
-//       event.respondWith(networkFirst(request));
-//   }
+self.addEventListener('fetch', event => {
+  const {request} = event;
+  const url = new URL(request.url);
+  if(url.origin === location.origin) {
+      event.respondWith(cacheData(request));
+  } else {
+      event.respondWith(networkFirst(request));
+  }
 
-// });
+});
 
+async function cacheData(request) {
+  console.log('from cache');
+  const cachedResponse = await caches.match(request);
+  return cachedResponse || fetch(request);
+}
 
-// async function cacheData(request) {
-//   const cachedResponse = await caches.match(request);
-//   return cachedResponse || fetch(request);
-// }
+async function networkFirst(request) {
+  const cache = await caches.open(staticDevCoffee);
+console.log('form network');
+  try {
+      const response = await fetch(request);
+      cache.put(request, response.clone());
+      return response;
+  } catch (error){
+      return await cache.match(request);
 
-// async function networkFirst(request) {
-//   const cache = await caches.open('dynamic-meme');
+  }
 
-//   try {
-//       const response = await fetch(request);
-//       cache.put(request, response.clone());
-//       return response;
-//   } catch (error){
-//       return await cache.match(request);
+}
 
-//   }
-
-// }
-
-//   self.addEventListener('appinstalled', (event) => {
-//     console.log('👍', 'appinstalled', event);
-//   });  
+  self.addEventListener('appinstalled', (event) => {
+    console.log('👍', 'appinstalled', event);
+  });  
